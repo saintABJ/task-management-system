@@ -21,6 +21,7 @@ import com.example.tasks_mgt_sys.entities.role.Role;
 import com.example.tasks_mgt_sys.entities.role.RoleName;
 import com.example.tasks_mgt_sys.entities.user.CurrentUserUtil;
 import com.example.tasks_mgt_sys.entities.user.User;
+import com.example.tasks_mgt_sys.services.EmailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -42,6 +44,7 @@ public class TaskServiceImpl implements TaskService {
     private final RoleRepository roleRepository;
     private final CurrentUserUtil currentUserUtil;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     @Override
     public void createTask(Long projectId, TaskRequestDto request) {
@@ -91,6 +94,17 @@ public class TaskServiceImpl implements TaskService {
         List<Task> tasks = user.getTasks();
         tasks.add(task);
         task.setUser(user);
+
+        try {
+            emailService.sendMail(user.getEmail(), "Task Assignment", "task", Map.of(
+                    "userName", user.getName(),
+                    "taskTitle", task.getTitle(),
+                    "taskDescription", task.getDescription(),
+                    "dueDate", task.getDueDate()
+            ));
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Transactional
@@ -129,22 +143,6 @@ public class TaskServiceImpl implements TaskService {
                 .build()).toList();
     }
 
-    /*@Override
-    public void deleteTask(Long taskId) {
-        Task task = taskRepository.getTaskById(taskId).orElseThrow(() -> new EntityNotFoundException("Task not found"));
-        task.setDeletedAt(LocalDateTime.now());
-        taskRepository.save(task);
-
-        auditLogRepository.save(
-                AuditLog.builder()
-                        .action("DELETE")
-                        .entity("TASK")
-                        .entityId(task.getId())
-                        .performedBy(currentUserUtil.getLoggedInUsername())
-                        .timestamp(LocalDateTime.now())
-                        .build()
-        );
-    }*/
 
     @Override
 //    @Audit(action = "DELETE", entity = "TASK")

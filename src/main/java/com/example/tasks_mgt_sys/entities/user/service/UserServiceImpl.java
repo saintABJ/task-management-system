@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         try {
-            emailService.sendVerificationMail(
+            emailService.sendMail(
                     userRequestDto.getEmail(),
                     OtpType.ACCOUNT_VERIFICATION.name().replaceAll("_", " "),
                     "otp-email",

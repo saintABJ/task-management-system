@@ -56,7 +56,7 @@ public class TaskController {
 
     }
 
-    @GetMapping("/overdue-task")
+    @GetMapping("/overdue")
     public ResponseEntity<ApiResponse<List<TaskResponseDto>>> getOverdueTask(@RequestParam(required = false) String email) {
 
         List<TaskResponseDto> task = taskService.getOverdueTask(email);
